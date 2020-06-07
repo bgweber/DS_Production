@@ -23,4 +23,3 @@ def predict():
 # start the flask app, allow remote connections
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
-

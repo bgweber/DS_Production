@@ -3,6 +3,8 @@ ignore/
 models/
 
 *.pkl
+*.h5
+
 *.env
 
 __pycache__/

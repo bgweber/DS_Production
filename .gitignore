@@ -5,6 +5,9 @@ models/
 *.pkl
 *.h5
 
+*.jpg
+*.png
+
 *.env
 
 __pycache__/

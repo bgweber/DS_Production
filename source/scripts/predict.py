@@ -27,8 +27,8 @@ def predict():
                    "G9": params.get("G9"), "G10":params.get("G10")}
 
         new_x = pd.DataFrame.from_dict(data=new_row, 
-                                       orient="index", 
-                                       dtype='int').T
+                                       orient="index",
+                                       dtype="float").T
         
         data["response"] = str(model.predict_proba(new_x)[0][1])
         data["success"] = True

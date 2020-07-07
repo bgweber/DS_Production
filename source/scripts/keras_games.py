@@ -24,7 +24,7 @@ def predict():
         
         new_x = pd.DataFrame.from_dict(data=new_row,   
                                        orient="index", 
-                                       dtype='int').T
+                                       dtype="float").T
      
         data["response"] = str(model.predict(new_x)[0][0])
         data["success"] = True

@@ -41,7 +41,9 @@ def update_prediction(game1, game2):
                "G9": 0, "G10": 0}
 
     new_x = pd.DataFrame.from_dict(data=new_row,
-                                   orient="index").T                
+                                   orient="index",
+                                   dtype="float").T
+    
     return str(model.predict_proba(new_x)[0][1])    
 
 if __name__ == '__main__':

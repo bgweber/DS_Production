@@ -33,13 +33,15 @@ model  = mlflow.sklearn.load_model(model_path)
 )
 def update_prediction(game1, game2):
 
-    new_row = { "G1": float(game1), "G2": float(game2), 
-                "G3": 0, "G4": 0, 
-                "G5": 0, "G6": 0, 
-                "G7": 0, "G8": 0, 
-                "G9": 0, "G10":0 }
+    new_row = {"G1": float(game1), 
+               "G2": float(game2), 
+               "G3": 0, "G4": 0, 
+               "G5": 0, "G6": 0, 
+               "G7": 0, "G8": 0, 
+               "G9": 0, "G10": 0}
 
-    new_x = pd.DataFrame.from_dict(new_row, orient = "index").transpose()                
+    new_x = pd.DataFrame.from_dict(data=new_row,
+                                   orient="index").T                
     return str(model.predict_proba(new_x)[0][1])    
 
 if __name__ == '__main__':

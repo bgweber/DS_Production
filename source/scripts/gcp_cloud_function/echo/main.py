@@ -1,5 +1,5 @@
 def echo(request):
-    from flask import jsonify
+    import flask
 
     data = {"success": False}
     params = request.get_json()
@@ -8,4 +8,4 @@ def echo(request):
         data["response"] = str(params['msg'])
         data["success"] = True
     
-    return jsonify(data)
+    return flask.jsonify(data)

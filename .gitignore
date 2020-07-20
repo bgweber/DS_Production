@@ -4,6 +4,7 @@ models/
 
 *.pkl
 *.h5
+*.zip
 
 *.jpg
 *.png

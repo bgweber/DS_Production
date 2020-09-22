@@ -1,5 +1,6 @@
-import apache_beam as beam
+
 import argparse
+import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.io import ReadFromText
 from apache_beam.io import WriteToText
@@ -7,15 +8,15 @@ from apache_beam.io import WriteToText
 # define a function for transforming the data 
 class AppendDoFn(beam.DoFn):
     def process(self, element):
-        return "Hello World! " + element
-                        
+        yield element + " - Hello World!"
+        
 # set up pipeline parameters 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', dest='input',
-                      default='gs://dataflow-samples/shakespeare/kinglear.txt')
+                    default='gs://dataflow-samples/shakespeare/kinglear.txt')
 parser.add_argument('--output', dest='output',
-                    default='gs://dsp_model_store/shakespeare/kinglear3.txt')
-known_args, pipeline_args = parser.parse_known_args(None)
+                    default='gs://dsp_model_store_00/shakespeare/kinglear.txt')
+known_args, pipeline_args = parser.parse_known_args()
 pipeline_options = PipelineOptions(pipeline_args)
 
 # define the pipeline steps 
@@ -27,4 +28,3 @@ appended | 'write' >> WriteToText(known_args.output)
 # run the pipeline 
 result = p.run()
 result.wait_until_finish()
-

@@ -1,6 +1,6 @@
 
-import apache_beam as beam
 import argparse
+import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 
 parser = argparse.ArgumentParser()
@@ -13,19 +13,23 @@ class ApplyDoFn(beam.DoFn):
 
 
 query = """
-select *
-from `bigquery-public-data.samples.natality`
-order by rand()
-limit 100 
+    SELECT
+        *
+    FROM
+        `bigquery-public-data.samples.natality`
+    ORDER BY
+        RAND()
+    LIMIT
+        5
 """
 
-# define the pipeline steps 
+# define the pipeline steps
 p = beam.Pipeline(options=pipeline_options)
 data = p | 'Read from BigQuery' >> beam.io.Read(
-       beam.io.BigQuerySource(query=query, use_standard_sql=True))
+    beam.io.BigQuerySource(query=query, use_standard_sql=True)
+)
 scored = data | 'Apply Model' >> beam.ParDo(ApplyDoFn())
 
-# run the pipeline 
+# run the pipeline
 result = p.run()
 result.wait_until_finish()
-

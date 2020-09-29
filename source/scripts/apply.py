@@ -1,10 +1,16 @@
 
 import json
 import argparse
+import joblib
+import pandas as pd
+from google.cloud import storage
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.options.pipeline_options import SetupOptions
+from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.io.gcp.bigquery_tools import parse_table_schema_from_json
+from apache_beam.io.gcp.datastore.v1new.types import Key
+from apache_beam.io.gcp.datastore.v1new.types import Entity
+from apache_beam.io.gcp.datastore.v1new.datastoreio import WriteToDatastore
 
 query = """
     SELECT 
@@ -30,26 +36,20 @@ query = """
 class ApplyDoFn(beam.DoFn):
 
     def __init__(self):
-        import joblib
-        import pandas as pd
-        from google.cloud import storage
-        self._model = None
-        self._storage = storage
-        self._joblib = joblib
-        self._pd = pd
+        self.model = None
      
     def process(self, element):
-        if self._model is None:
-            bucket = self._storage.Client().get_bucket('dsp_model_store_00')
+        if self.model is None:
+            bucket = storage.Client().get_bucket('dsp_model_store_00')
             blob = bucket.get_blob('natality/sklearn-linear')
             blob.download_to_filename('sklearn-linear')
-            self._model = self._joblib.load('sklearn-linear')
+            self.model = joblib.load('sklearn-linear')
         
-        new_x = self._pd.DataFrame.from_dict(element, orient="index").T.fillna(0)   
-        weight = self._model.predict(new_x.iloc[:, :8])[0]
-        return [{'guid': element['guid'],
-                 'weight': weight,
-                 'time': str(element['time'])}]
+        new_x = pd.DataFrame.from_dict(element, orient="index").T.fillna(0)   
+        weight = self.model.predict(new_x.iloc[:, :8])[0]
+        yield {'guid': element['guid'],
+               'weight': weight,
+               'time': str(element['time'])}
 
 schema = parse_table_schema_from_json(json.dumps({
     'fields': [{'name': 'guid', 'type': 'STRING'},
@@ -57,10 +57,21 @@ schema = parse_table_schema_from_json(json.dumps({
                {'name': 'time', 'type': 'STRING'}]
 }))
 
+class CreateEntityDoFn(beam.DoFn):
+    def process(self, element):
+        key = Key(['natality-guid', element['guid']])
+        entity = Entity(key)
+        entity.set_properties({
+            'weight': element['weight'],
+            'time': element['time']
+        })
+        yield entity
+
 # set up pipeline options
 parser = argparse.ArgumentParser()
 known_args, pipeline_args = parser.parse_known_args()
 pipeline_options = PipelineOptions(pipeline_args)
+project = pipeline_options.view_as(GoogleCloudOptions).project
 
 # define the pipeline steps
 p = beam.Pipeline(options=pipeline_options)
@@ -76,6 +87,9 @@ scored | 'Save to BigQuery' >> beam.io.WriteToBigQuery(
     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
     write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND
 )
+(scored
+ | 'Create Entities' >> beam.ParDo(CreateEntityDoFn())
+ | 'Save to Datastore' >> WriteToDatastore(project))
 
 # run the pipeline
 result = p.run()

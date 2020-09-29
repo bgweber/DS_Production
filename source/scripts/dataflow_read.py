@@ -4,13 +4,8 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 
 parser = argparse.ArgumentParser()
-known_args, pipeline_args = parser.parse_known_args(None)
+known_args, pipeline_args = parser.parse_known_args()
 pipeline_options = PipelineOptions(pipeline_args)
-
-class ApplyDoFn(beam.DoFn):
-    def process(self, element):
-        print(element)
-
 
 query = """
     SELECT
@@ -28,7 +23,7 @@ p = beam.Pipeline(options=pipeline_options)
 data = p | 'Read from BigQuery' >> beam.io.Read(
     beam.io.BigQuerySource(query=query, use_standard_sql=True)
 )
-scored = data | 'Apply Model' >> beam.ParDo(ApplyDoFn())
+scored = data | 'Print' >> beam.Map(print)
 
 # run the pipeline
 result = p.run()

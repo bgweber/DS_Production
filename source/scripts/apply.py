@@ -3,8 +3,9 @@ import json
 import argparse
 import joblib
 import pandas as pd
-from google.cloud import storage
 import apache_beam as beam
+
+from google.cloud import storage
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.io.gcp.bigquery_tools import parse_table_schema_from_json

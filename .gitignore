@@ -1,0 +1,16 @@
+data/
+ignore/
+models/
+
+*.pkl
+*.h5
+*.zip
+
+*.jpg
+*.png
+
+*.env
+*.json
+
+__pycache__/
+.ipynb_checkpoints/
